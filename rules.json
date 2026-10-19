@@ -1,0 +1,70 @@
+{
+  "_info": "Briqwise dossier-check rules. Edit, commit to main, then purge the jsDelivr cache. Everything here is public.",
+  "version": "2026-10-19",
+  "hubspot": {
+    "portalId": "25717347",
+    "forms": {
+      "report": "REPLACE-WITH-REPORT-FORM-GUID",
+      "caseSubmit": "REPLACE-WITH-CASE-FORM-GUID"
+    }
+  },
+  "ui": {
+    "gateOutcome": false,
+    "meetingUrl": "https://www.briqwise.com/contact",
+    "phone": "085 130 37 86"
+  },
+  "email": {
+    "blockFreeMail": true,
+    "mxCheck": true,
+    "extraBlockedDomains": []
+  },
+  "loan": {
+    "min": 100000,
+    "max": 5000000,
+    "ltvMax": 0.75,
+    "ltvHigherRate": 0.7,
+    "sweetspotMax": 1000000,
+    "goodMax": 2500000
+  },
+  "repayment": {
+    "interestOnlyLtv": 0.5,
+    "linearYears": 10,
+    "shortTermMonths": 24,
+    "shortTermInterestOnlyLtv": 0.7
+  },
+  "costs": {
+    "financingFee": 0.0295,
+    "financingFeeMinBase": 100000,
+    "managementFee": 0.0025
+  },
+  "guarantee": {
+    "lowLtv": 0.5,
+    "lowLtvPct": 0.15
+  },
+  "rate": {
+    "min": 6.0,
+    "max": 9.0,
+    "termSurcharges": [
+      {
+        "fromMonths": 120,
+        "pct": 0.5
+      },
+      {
+        "fromMonths": 180,
+        "pct": 1.0
+      },
+      {
+        "fromMonths": 240,
+        "pct": 1.5
+      }
+    ]
+  },
+  "intermediaryFee": {
+    "enabled": true,
+    "validUntil": null,
+    "pctPerCriterion": 0.5,
+    "maxLoanAmount": 200000,
+    "maxLtv": 0.5,
+    "maxTermMonths": 24
+  }
+}
