@@ -102,11 +102,16 @@ with sync_playwright() as p:
         check(not any(k[1] == "dc_borrower_name" for k in rp), f"{name}: no dc_borrower_name")
 
         # case submit
+        lk = page.eval_on_selector('[data-dc="meetLink"]', "e=>getComputedStyle(e).position+'/'+getComputedStyle(e).top")
+        check(lk.startswith("static"), f"{name}: call button not positioned by host CSS ({lk})")
         page.click('[data-dc="openCase"]')
         cf = 'form[data-dc-form="case"]'
         page.fill(cf + ' [name="address"]', "Oudegracht 12"); page.fill(cf + ' [name="postcode_vastgoed"]', "3511 AB")
         page.fill(cf + ' [name="plaatsnaam_vastgoed"]', "Utrecht");
         check(page.input_value(cf + ' [name="phone"]') == "06 1234 5678", f"{name}: phone prefilled from report")
+        check(page.is_hidden('[data-dc="phWrap"]') and "06 1234 5678" in txt(page, "phKnown"), f"{name}: known phone not asked again")
+        page.click('[data-dc="phEdit"]')
+        check(page.is_visible('[data-dc="phWrap"]'), f"{name}: phone editable via link")
         page.click(cf + ' [type="submit"]'); page.wait_for_timeout(200)
         check("akkoord" in page.inner_text(cf + ' [data-dc-err]'), f"{name}: consent required")
         page.check(cf + ' [name="dc_client_consent"]'); page.click(cf + ' [type="submit"]'); page.wait_for_timeout(900)
@@ -122,7 +127,17 @@ with sync_playwright() as p:
         # knockout path
         page.goto(url); page.wait_for_timeout(200)
         page.click('[data-go="2"]'); page.click('section[data-step="2"] [data-go="3"]')
-        page.click('[data-g="eig"] [data-v="opstal"]'); page.click('[data-dc="toResult"]')
+        check(page.is_hidden('[data-dc="koOpstal"]'), f"{name}: no opstal hint before choosing")
+        page.click('[data-g="eig"] [data-v="opstal"]')
+        check(page.is_visible('[data-dc="koOpstal"]') and "Erfpacht kan wel" in txt(page, "koOpstal"), f"{name}: opstal explainer shown")
+        check(txt(page, "statWhy") == "Recht van opstal", f"{name}: status reason ({txt(page,'statWhy')})")
+        check("ko" in page.get_attribute('[data-dc="meter"]', "class"), f"{name}: meter greyed on knockout")
+        page.click('[data-g="excl"] [data-v="ja"]')
+        check(page.is_visible('[data-dc="koBranche"]') and page.is_visible('[data-dc="koOpstal"]'), f"{name}: both explainers when both apply")
+        page.click('[data-g="excl"] [data-v="nee"]')
+        check(page.is_hidden('[data-dc="koBranche"]'), f"{name}: branche explainer hides again")
+        page.screenshot(path=str(shots / f"{name}-7-ko.png"), full_page=True)
+        page.click('[data-dc="toResult"]')
         check(page.is_hidden('[data-dc="gate"]') and "opstal" in txt(page, "oText"), f"{name}: opstal knockout, no gate")
         # maatwerk: LTV 80%
         page.goto(url); page.wait_for_timeout(200)

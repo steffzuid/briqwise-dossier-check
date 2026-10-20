@@ -227,7 +227,12 @@
     $('ltvTxt').textContent = (r.l * 100).toFixed(1).replace('.', ',') + '%';
     $('ring').setAttribute('stroke-dashoffset', (113.1 * (1 - r.pct / 100)).toFixed(1));
     $('docPct').textContent = r.pct + '%';
-    var st = ST[r.o], c = COL[st[0]], p = $('stat'); p.textContent = st[1]; p.style.color = c[0]; p.style.background = c[1];
+    var st = ST[r.o], c = COL[st[0]], p = $('stat'); p.textContent = st[1]; p.style.color = c[0];
+    $('statWhy').textContent = r.ko ? KO_SHORT[r.ko] : '';
+    $('meter').classList.toggle('ko', !!r.ko);
+    [['branche', 'koBranche'], ['opstal', 'koOpstal'], ['consument', 'koConsument']].forEach(function (k) {
+      var el = $(k[1]), on = KO_ON[k[0]](); el.hidden = !on; if (on) el.textContent = KO[k[0]];
+    });
     $('lOut').textContent = lt(r.m);
     $('lHint').textContent = r.ops ? 'Renteopslag van +' + pc(r.ops) + ' bij deze looptijd. Investeerders hebben voorkeur voor 60 maanden.' : (r.m === 60 ? 'Voorkeurslooptijd van investeerders.' : 'Investeerders hebben voorkeur voor 60 maanden.');
     $('cVrij').textContent = eur(r.a.vrij);
@@ -251,10 +256,12 @@
   }
   $$('[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(+b.getAttribute('data-go')); }); });
 
+  var KO_ON = { branche: function () { return S.excl === 'ja'; }, opstal: function () { return S.eig === 'opstal'; }, consument: function () { return S.aanvrager === 'prive' && S.gebruik === 'eigen'; } };
+  var KO_SHORT = { branche: 'Uitgesloten sector', opstal: 'Recht van opstal', consument: 'Consumentenfinanciering' };
   var KO = {
-    branche: 'Briqwise financiert geen geldnemers of huurders die actief zijn in seks, wapens of drugs, en geen casino in eigen beheer. Ook niet als maatwerk.',
-    opstal: 'Een recht van opstal accepteren we niet als onderpand.',
-    consument: 'Dit is een consumentenfinanciering in de zin van de Wft. Die bieden we niet aan op ons platform.'
+    branche: 'Briqwise financiert geen geldnemers of huurders die actief zijn in seks, wapens of drugs, en geen casino in eigen beheer. Ook niet als maatwerk. Is alleen de huurder een casino? Kies dan Nee en tik bij bijzonderheden \'Huurder is een casino\' aan.',
+    opstal: 'Een recht van opstal accepteren we niet als onderpand, ook niet als maatwerk. Erfpacht kan wel.',
+    consument: 'Privé lenen voor eigen gebruik is een consumentenfinanciering in de zin van de Wft. Die bieden we niet aan op ons platform. Verhuur vanuit box 3 kan wel.'
   };
   function outcome(r) {
     if (r.ko) return ['da', 'ban', 'Deze case kunnen we niet financieren', KO[r.ko]];
@@ -421,7 +428,7 @@
     return root.querySelector('form[data-dc-form="' + key + '"]');
   }
   var forms = { report: adopt('report'), caseSubmit: adopt('case') };
-  function setErr(key, msg) { var f = forms[key]; var e = f && f.querySelector('[data-dc-err]'); if (e) e.textContent = msg; }
+  function setErr(key, msg) { var f = forms[key]; var e = f && f.querySelector('[data-dc-err]'); if (e) e.textContent = msg; if (msg) track('form_error', { dc_form: key, dc_error: msg }); }
   function val(f, n) { var el = f.querySelector('[name="' + n + '"]'); if (!el) return ''; if (el.type === 'checkbox') return el.checked ? 'true' : ''; return (el.value || '').trim(); }
   function busy(f, on) { var b = f.querySelector('[type=submit]'); if (b) { b.disabled = on; if (on) { b.dataset.t = b.textContent; b.textContent = 'Even geduld…'; } else if (b.dataset.t) b.textContent = b.dataset.t; } }
   function isBot(f) { return val(f, 'dc_website') !== '' || Date.now() - startedAt < 4000; }
@@ -451,6 +458,7 @@
           if (!res.ok) return setErr('report', res.msg);
           ss('dc_email', val(f, 'email').toLowerCase());
           var ph = forms.caseSubmit && forms.caseSubmit.querySelector('[name="phone"]'); if (ph && !ph.value) ph.value = val(f, 'phone');
+          if (ph && ph.value && $('phKnown')) { $('phVal').textContent = ph.value; $('phKnown').hidden = false; $('phWrap').hidden = true; }
           track('generate_lead', { dc_form: 'report', dc_outcome: r.o, dc_intermediair_type: tint });
           showReport(r);
         });
@@ -532,6 +540,11 @@
       function done_() { $('caseWrap').hidden = true; $('caseDone').hidden = false; }
     }, true);
   }
+
+  if ($('phEdit')) $('phEdit').addEventListener('click', function (e) {
+    e.preventDefault(); $('phKnown').hidden = true; $('phWrap').hidden = false;
+    var i = $('phWrap').querySelector('input'); i.focus(); i.select();
+  });
 
   /* ================= rule-driven UI ================= */
   (function applyRules() {

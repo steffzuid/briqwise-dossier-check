@@ -16,6 +16,12 @@
 #bw-dc .dc-ticks{position:relative;height:16px;font-size:11px;color:var(--v3)}
 #bw-dc .dc-ticks span{position:absolute;transform:translateX(-50%)}
 #bw-dc .dc-pill{display:inline-block;font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px}
+#bw-dc .dc-stat{display:inline-flex;align-items:center;gap:7px;font-size:16px;font-weight:700;line-height:1.3;transition:color .2s}
+#bw-dc .dc-stat::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px #fff}
+#bw-dc .dc-meter .dc-ltv,#bw-dc .dc-meter svg{transition:opacity .2s,filter .2s}
+#bw-dc .dc-meter.ko .dc-ltv,#bw-dc .dc-meter.ko svg{opacity:.35;filter:grayscale(1)}
+#bw-dc .dc-ko{font-size:13px;line-height:1.45;color:var(--da);background:var(--dab);border:1px solid var(--dad);border-radius:10px;padding:10px 12px;margin:-8px 0 20px}
+#bw-dc .dc-ko[hidden]{display:none}
 #bw-dc .dc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:20px}
 #bw-dc .dc-grid.sm{grid-template-columns:repeat(auto-fit,minmax(120px,170px))}
 #bw-dc .dc-grid.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -52,7 +58,7 @@
 #bw-dc .dc-nav{display:flex;justify-content:space-between;gap:10px;margin-top:8px}
 #bw-dc .dc-btn{font-family:Manrope,sans-serif;font-size:16px;font-weight:700;border-radius:12px;padding:14px 28px;cursor:pointer;border:0;background:var(--gr);color:#fff;min-height:52px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;text-align:center}
 #bw-dc .dc-btn:disabled{opacity:.6;cursor:wait}
-#bw-dc .dc-btn.line{background:#fff;color:var(--or);border:1px solid var(--or)}
+#bw-dc .dc-btn.dc-line{background:#fff;color:var(--or);border:1px solid var(--or)}
 #bw-dc .dc-btn.ghost{background:transparent;color:var(--v);border:1px solid var(--bd);font-weight:600}
 #bw-dc .dc-btn.full{width:100%}
 #bw-dc .dc-in{font-family:Manrope,sans-serif;width:100%;height:50px;border:1px solid var(--bd);border-radius:12px;padding:12px 16px;font-size:16px;color:#101828;background:#fff}
@@ -72,7 +78,7 @@
 #bw-dc .dc-tile p{margin:0}
 #bw-dc .dc-tile .k{font-size:13px;color:var(--mu)}
 #bw-dc .dc-tile .v{font-family:Ppformula,Manrope,sans-serif;font-size:19px;font-weight:700;color:var(--v);margin-top:2px}
-#bw-dc .dc-tile .v.mask{color:var(--v3);letter-spacing:1px}
+#bw-dc .dc-tile .v.dc-mask{color:var(--v3);letter-spacing:1px}
 #bw-dc .dc-box{border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:20px}
 #bw-dc .dc-box.peach{background:var(--pe2);border-color:var(--pe)}
 #bw-dc .dc-box.green{background:var(--okb);border-color:var(--okd);color:var(--ok)}
@@ -93,7 +99,7 @@
 #bw-dc .dc-card{padding:18px;border-radius:14px}
 #bw-dc h2.dc-h{font-size:22px}
 #bw-dc .dc-meter{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-#bw-dc .dc-meter .ltv{grid-column:1/-1}
+#bw-dc .dc-meter .dc-ltv{grid-column:1/-1}
 #bw-dc .dc-grid,#bw-dc .dc-grid.sm,#bw-dc .dc-grid.g3{grid-template-columns:repeat(2,minmax(0,1fr))}
 #bw-dc .dc-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
 #bw-dc .dc-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -113,8 +119,8 @@
 <h2 class="dc-h">Heeft deze aanvraag kans?</h2>
 <p class="dc-intro">Schuif, klik en zie direct hoe je case ervoor staat.</p>
 
-<div class="dc-meter">
-<div class="ltv">
+<div class="dc-meter" data-dc="meter">
+<div class="dc-ltv">
 <span class="dc-lbl" style="margin-bottom:6px">LTV <span data-dc="ltvTxt"></span></span>
 <div class="dc-bar"><div class="dc-barf" data-dc="ltvBar"></div><i class="s" data-dc="tickFree" style="left:50%"></i><i data-dc="tickMax" style="left:75%"></i></div>
 <div class="dc-ticks"><span data-dc="tickFreeL" style="left:50%">50%</span><span data-dc="tickMaxL" style="left:75%">max 75%</span></div>
@@ -123,7 +129,7 @@
 <svg width="42" height="42" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18" fill="none" stroke="#fff" stroke-width="5"/><circle data-dc="ring" cx="22" cy="22" r="18" fill="none" stroke="#067647" stroke-width="5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1" transform="rotate(-90 22 22)" style="transition:stroke-dashoffset .3s"/></svg>
 <div><span class="dc-hint" style="margin:0">Dossier</span><div class="dc-val" style="font-size:16px" data-dc="docPct">0%</div></div>
 </div>
-<div><span class="dc-hint" style="margin:0 0 2px;display:block">Status</span><span class="dc-pill" data-dc="stat"></span></div>
+<div><span class="dc-hint" style="margin:0 0 2px;display:block">Status</span><span class="dc-stat" data-dc="stat"></span><span class="dc-hint" style="margin:2px 0 0;display:block" data-dc="statWhy"></span></div>
 </div>
 
 <!-- STEP 1 -->
@@ -177,6 +183,7 @@
 <button type="button" class="dc-opt col" data-v="ez" data-i="badge">Eenmanszaak of vof</button>
 <button type="button" class="dc-opt col" data-v="prive" data-i="user">Priv&eacute; (box 3)</button>
 </div>
+<p class="dc-ko" data-dc="koConsument" hidden></p>
 <div data-dc="box3w" hidden>
 <span class="dc-lbl">Minimaal drie verhuurde panden en drie huurcontracten, en huur minimaal 25% van het totale inkomen?</span>
 <div class="dc-grid sm" data-g="box3"><button type="button" class="dc-opt" data-v="ja" style="justify-content:center">Ja</button><button type="button" class="dc-opt" data-v="nee" style="justify-content:center">Nee</button></div>
@@ -194,12 +201,14 @@
 <button type="button" class="dc-opt" data-v="nee" data-i="check">Nee</button>
 <button type="button" class="dc-opt da" data-v="ja" data-i="ban">Ja</button>
 </div>
+<p class="dc-ko" data-dc="koBranche" hidden></p>
 <span class="dc-lbl">Eigendomssituatie</span>
 <div class="dc-grid sm three" data-g="eig">
 <button type="button" class="dc-opt col" data-v="vol" data-i="home">Volle eigendom</button>
 <button type="button" class="dc-opt col" data-v="erfpacht" data-i="cal">Erfpacht</button>
 <button type="button" class="dc-opt col da" data-v="opstal" data-i="ban">Recht van opstal</button>
 </div>
+<p class="dc-ko" data-dc="koOpstal" hidden></p>
 <span class="dc-lbl">Bijzonderheden? Tik aan wat van toepassing is.</span>
 <div class="dc-chips" data-dc="bijz"></div>
 <span class="dc-lbl">Is de case al afgewezen door een bank?</span>
@@ -221,10 +230,10 @@
 <div data-dc="gate">
 <span class="dc-lbl">&#128274; In je volledige rapport</span>
 <div class="dc-tiles">
-<div class="dc-tile"><p class="k">Max. financiering</p><p class="v mask">&euro; &bull;&bull;&bull;&bull;&bull;&bull;</p></div>
-<div class="dc-tile"><p class="k">Maandlast indicatie</p><p class="v mask">&euro; &bull;&bull;&bull;&bull;</p></div>
-<div class="dc-tile" data-dc="vergTeaser"><p class="k">Jouw vergoeding</p><p class="v mask">&euro; &bull;&bull;&bull;&bull;&bull;</p></div>
-<div class="dc-tile"><p class="k">What-if taxatie</p><p class="v mask">&bull;&bull; %</p></div>
+<div class="dc-tile"><p class="k">Max. financiering</p><p class="v dc-mask">&euro; &bull;&bull;&bull;&bull;&bull;&bull;</p></div>
+<div class="dc-tile"><p class="k">Maandlast indicatie</p><p class="v dc-mask">&euro; &bull;&bull;&bull;&bull;</p></div>
+<div class="dc-tile" data-dc="vergTeaser"><p class="k">Jouw vergoeding</p><p class="v dc-mask">&euro; &bull;&bull;&bull;&bull;&bull;</p></div>
+<div class="dc-tile"><p class="k">What-if taxatie</p><p class="v dc-mask">&bull;&bull; %</p></div>
 </div>
 <div class="dc-box peach" data-dc-slot="report">
 <!-- Fallback form. Place a native Webflow form with data-dc-form="report" on the page to use that one instead. -->
@@ -296,7 +305,7 @@
 
 <div data-dc="caseCta" style="display:flex;flex-direction:column;gap:10px">
 <button type="button" class="dc-btn full" data-dc="openCase">Case indienen bij Briqwise &rarr;</button>
-<a class="dc-btn line full" data-dc="meetLink" href="#" target="_blank" rel="noopener">Plan een call met een accountmanager</a>
+<a class="dc-btn dc-line full" data-dc="meetLink" href="#" target="_blank" rel="noopener">Plan een call met een accountmanager</a>
 </div>
 
 <div class="dc-box peach" data-dc="caseWrap" hidden style="margin-top:20px">
@@ -310,7 +319,8 @@
 <div><label class="dc-lbl" for="dc-pc">Postcode</label><input class="dc-in" id="dc-pc" name="postcode_vastgoed" type="text" placeholder="1234 AB" required></div>
 <div><label class="dc-lbl" for="dc-pl">Plaats</label><input class="dc-in" id="dc-pl" name="plaatsnaam_vastgoed" type="text" placeholder="Utrecht"></div>
 </div>
-<div style="margin-bottom:16px"><label class="dc-lbl" for="dc-ph">Jouw telefoonnummer</label><input class="dc-in" id="dc-ph" name="phone" type="tel" placeholder="06 12345678" autocomplete="tel" inputmode="tel" required></div>
+<p class="dc-hint" style="margin:0 0 16px" data-dc="phKnown" hidden>Je accountmanager belt je op <b data-dc="phVal"></b>. <a href="#" data-dc="phEdit" style="color:var(--or)">Ander nummer?</a></p>
+<div style="margin-bottom:16px" data-dc="phWrap"><label class="dc-lbl" for="dc-ph">Jouw telefoonnummer</label><input class="dc-in" id="dc-ph" name="phone" type="tel" placeholder="06 12345678" autocomplete="tel" inputmode="tel" required></div>
 <label class="dc-lbl" for="dc-nt">Toelichting (optioneel)</label>
 <textarea class="dc-in" id="dc-nt" name="dc_notes" placeholder="Bijvoorbeeld: koopakte moet voor 1 december passeren."></textarea>
 <input type="hidden" name="straatnaam_vastgoed"><input type="hidden" name="huisnummer_vastgoed"><input type="hidden" name="huisnummer_toevoeging_los">
