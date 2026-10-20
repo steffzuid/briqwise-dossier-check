@@ -56,14 +56,14 @@ const TRACKING = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_c
 const COMMON = ['contact_type', 'bw_business_unit', 'doel_financiering', 'type_bestemming', ...DC_FIELDS, ...TRACKING];
 const FORMS = {
   report: {
-    visible: ['firstname', 'lastname', 'email', 'phone', 'intermediair_type', 'marketing_consent'],
-    required: ['firstname', 'lastname', 'email', 'intermediair_type'],
-    hidden: COMMON.filter(n => n !== 'intermediair_type'), objects: []
+    visible: ['firstname', 'lastname', 'email', 'phone', 'company', 'zip', 'intermediair_type', 'marketing_consent'],
+    required: ['firstname', 'lastname', 'email', 'company', 'zip', 'intermediair_type'],
+    hidden: COMMON.filter(n => n !== 'intermediair_type'), objects: [['0-2', ['name', 'zip']]]
   },
   caseSubmit: {
     visible: ['email', 'phone', 'dc_notes', 'dc_client_consent'],
     required: ['email', 'phone', 'dc_client_consent'],
-    hidden: ['dc_case_submitted', 'appraisal_value', 'desired_loan_amount', 'straatnaam_vastgoed', 'huisnummer_vastgoed', 'huisnummer_toevoeging_los', 'postcode_vastgoed', 'plaatsnaam_vastgoed', ...COMMON],
+    hidden: ['dc_case_submitted', 'appraisal_value', 'desired_loan_amount', 'ltv', 'straatnaam_vastgoed', 'huisnummer_vastgoed', 'huisnummer_toevoeging_los', 'postcode_vastgoed', 'plaatsnaam_vastgoed', ...COMMON],
     objects: [[LOAN, ['loan_amount', 'loan_duration_imp', 'loan_status', 'bi_loans_id', 'loan_country']], [COLLATERAL, ['collateral_address_full', 'collateral_street', 'collateral_house_number', 'collateral_house_number_addition', 'collateral_postal_code', 'collateral_city', 'collateral_country_code', 'collateral_appraisal_value', 'collateral_financing_type', 'collateral_usage']]]
   }
 };

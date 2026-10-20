@@ -47,9 +47,10 @@
     mxCheck: RU.email.mxCheck,
     extraBlocked: RU.email.extraBlockedDomains || [],
     meetingUrl: RU.ui.meetingUrl,
+    meetingTrigger: RU.ui.meetingTrigger || '',
     phone: RU.ui.phone,
     googleMapsKey: 'AIzaSyAvGTcXSgj4Zp2y-5ldz0UPNzWZ6qYb2cA', // same key as /lenen/stap-1
-    objects: { contact: '0-1', loan: '2-138893726', collateral: '2-139157927' },
+    objects: { contact: '0-1', company: '0-2', loan: '2-138893726', collateral: '2-139157927' },
     rules: {
       min: RU.loan.min, max: RU.loan.max, ltvMax: RU.loan.ltvMax, ltvRateUp: RU.loan.ltvHigherRate, sweet: RU.loan.sweetspotMax, good: RU.loan.goodMax,
       ltvFree: RU.repayment.interestOnlyLtv, ltvFreeShort: RU.repayment.shortTermInterestOnlyLtv, shortTerm: RU.repayment.shortTermMonths, linearYears: RU.repayment.linearYears,
@@ -445,13 +446,18 @@
       if (!val(f, 'firstname')) return setErr('report', 'Vul je voornaam in.');
       if (f.querySelector('[name="lastname"]') && !val(f, 'lastname')) return setErr('report', 'Vul je achternaam in.');
       if (val(f, 'phone') && val(f, 'phone').replace(/\D/g, '').length < 10) return setErr('report', 'Vul een geldig telefoonnummer in, of laat het veld leeg.');
+      if (f.querySelector('[name="company"]') && !val(f, 'company')) return setErr('report', 'Vul de naam van je kantoor in.');
+      var zip4 = (val(f, 'zip').match(/^(\d{4})\s*([a-zA-Z]{2})?$/) || [])[1];
+      if (f.querySelector('[name="zip"]') && !zip4) return setErr('report', 'Vul de postcode van je kantoor in, bijvoorbeeld 7571.');
       var tint = val(f, 'intermediair_type') || S.tint;
       if (!tint) return setErr('report', 'Kies wat voor kantoor je bent.');
       busy(f, true);
       validateEmail(val(f, 'email')).then(function (m) {
         if (m) { busy(f, false); if (em) em.classList.add('bad'); return setErr('report', m); }
         if (isBot(f)) { busy(f, false); return showReport(r); }
-        var fields = [F('firstname', val(f, 'firstname')), F('lastname', val(f, 'lastname')), F('email', val(f, 'email').toLowerCase()), F('phone', val(f, 'phone')), F('intermediair_type', tint)];
+        var fields = [F('firstname', val(f, 'firstname')), F('lastname', val(f, 'lastname')), F('email', val(f, 'email').toLowerCase()), F('phone', val(f, 'phone')), F('company', val(f, 'company')), F('zip', zip4), F('intermediair_type', tint),
+          /* the kantoor as Company: the owner routing works on the company's postal code */
+          F('name', val(f, 'company'), CONFIG.objects.company), F('zip', zip4, CONFIG.objects.company)];
         if (val(f, 'marketing_consent')) fields.push(F('marketing_consent', 'true'));
         return hsSubmit('report', fields.concat(caseFields(r))).then(function (res) {
           busy(f, false);
@@ -521,7 +527,7 @@
       var fields = [
         F('email', email), F('phone', val(f, 'phone')),
         F('dc_notes', val(f, 'dc_notes')), F('dc_client_consent', 'true'),
-        F('appraisal_value', Math.round(r.w)), F('desired_loan_amount', r.b),
+        F('appraisal_value', Math.round(r.w)), F('desired_loan_amount', r.b), F('ltv', (r.l * 100).toFixed(2)),
         F('dc_case_submitted', 'true'),
         F('straatnaam_vastgoed', street), F('huisnummer_vastgoed', nr), F('huisnummer_toevoeging_los', add),
         F('postcode_vastgoed', pcode), F('plaatsnaam_vastgoed', city),
@@ -540,6 +546,13 @@
       function done_() { $('caseWrap').hidden = true; $('caseDone').hidden = false; }
     }, true);
   }
+
+  /* "Plan een call" opens the site's own meeting modal when the page has its trigger, else the meeting URL */
+  $('meetLink').addEventListener('click', function (e) {
+    var t = CONFIG.meetingTrigger && document.querySelector(CONFIG.meetingTrigger);
+    track('meeting_click', { dc_via: t ? 'modal' : 'link' });
+    if (t) { e.preventDefault(); t.click(); }
+  });
 
   if ($('phEdit')) $('phEdit').addEventListener('click', function (e) {
     e.preventDefault(); $('phKnown').hidden = true; $('phWrap').hidden = false;

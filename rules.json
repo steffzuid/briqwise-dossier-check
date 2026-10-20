@@ -12,6 +12,7 @@
   "ui": {
     "gateOutcome": false,
     "meetingUrl": "https://www.briqwise.com/contact",
+    "meetingTrigger": ".lower-third-meeting_link",
     "phone": "085 130 37 86"
   },
   "email": {

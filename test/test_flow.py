@@ -77,6 +77,12 @@ with sync_playwright() as p:
         page.click(f + ' [type="submit"]'); page.wait_for_timeout(250)
         check("achternaam" in page.inner_text(f + ' [data-dc-err]'), f"{name}: lastname required")
         page.fill(f + ' [name="lastname"]', "de Vries"); page.fill(f + ' [name="phone"]', "06 1234 5678")
+        page.click(f + ' [type="submit"]'); page.wait_for_timeout(250)
+        check("naam van je kantoor" in page.inner_text(f + ' [data-dc-err]'), f"{name}: office name required")
+        page.fill(f + ' [name="company"]', "Van Dijk Advies")
+        page.click(f + ' [type="submit"]'); page.wait_for_timeout(250)
+        check("postcode" in page.inner_text(f + ' [data-dc-err]'), f"{name}: office postcode required")
+        page.fill(f + ' [name="zip"]', "7571 EE")
         def submit_with(email):
             page.fill(f + ' [name="email"]', email)
             page.click(f + ' [type="submit"]'); page.wait_for_timeout(250)
@@ -96,14 +102,18 @@ with sync_playwright() as p:
         check(txt(page, "dFee") == "€ 8.850", f"{name}: fee 2,95% ({txt(page,'dFee')})")
         page.screenshot(path=str(shots / f"{name}-5-report.png"), full_page=True)
         rp = sent.get("report", {})
-        for k, v in [("lastname", "de Vries"), ("phone", "06 1234 5678"), ("contact_type", "Intermediair"), ("intermediair_type", "Makelaar"), ("dc_term_months", "60")]:
+        for k, v in [("lastname", "de Vries"), ("phone", "06 1234 5678"), ("contact_type", "Intermediair"), ("intermediair_type", "Makelaar"), ("dc_term_months", "60"), ("zip", "7571"), ("company", "Van Dijk Advies")]:
             check(rp.get(("0-1", k), "").lower() == v.lower(), f"{name}: report sends {k}={rp.get(('0-1', k))}")
         check("Borgstelling" in rp.get(("0-1", "dc_report_summary"), ""), f"{name}: summary has borgstelling line")
+        check(rp.get(("0-2", "name")) == "Van Dijk Advies" and rp.get(("0-2", "zip")) == "7571", f"{name}: company object gets name + zip")
         check(not any(k[1] == "dc_borrower_name" for k in rp), f"{name}: no dc_borrower_name")
 
         # case submit
         lk = page.eval_on_selector('[data-dc="meetLink"]', "e=>getComputedStyle(e).position+'/'+getComputedStyle(e).top")
         check(lk.startswith("static"), f"{name}: call button not positioned by host CSS ({lk})")
+        page.evaluate("document.body.insertAdjacentHTML('beforeend','<a href=\"#\" class=\"lower-third-meeting_link\" onclick=\"window.__modal=1;return false\"></a>')")
+        page.click('[data-dc="meetLink"]'); page.wait_for_timeout(100)
+        check(page.evaluate("window.__modal") == 1 and len(b.contexts[0].pages) == len(b.contexts[0].pages), f"{name}: call button opens site meeting modal")
         page.click('[data-dc="openCase"]')
         cf = 'form[data-dc-form="case"]'
         page.fill(cf + ' [name="address"]', "Oudegracht 12"); page.fill(cf + ' [name="postcode_vastgoed"]', "3511 AB")
@@ -120,8 +130,9 @@ with sync_playwright() as p:
         for key, v in [((K, "collateral_financing_type"), "purchase"), ((K, "collateral_usage"), "commercial"), ((K, "collateral_country_code"), "nl"),
                        ((L, "loan_status"), "new"), ((L, "loan_duration_imp"), "60"), ((L, "loan_country"), "nl"), ((L, "loan_amount"), "300000"),
                        (("0-1", "appraisal_value"), "500000"), (("0-1", "desired_loan_amount"), "300000"), (("0-1", "contact_type"), "Intermediair"),
-                       (("0-1", "email"), "sanne@vandijkadvies.nl")]:
+                       (("0-1", "email"), "sanne@vandijkadvies.nl"), (("0-1", "ltv"), "60.00")]:
             check(cs.get(key) == v, f"{name}: case sends {key[1]}={cs.get(key)}")
+        check(("0-1", "address") not in cs and len(cs) > 0, f"{name}: address not sent")
         page.screenshot(path=str(shots / f"{name}-6-case.png"), full_page=True)
 
         # knockout path
