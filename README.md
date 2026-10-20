@@ -21,7 +21,7 @@ Embed element where the tool should appear:
 Page settings → Custom code → Before `</body>` (replace `OWNER`):
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/OWNER/briqwise-dossier-check@1.0.0/dist/dossier-check.min.js"
+<script src="https://cdn.jsdelivr.net/gh/OWNER/briqwise-dossier-check@1.1.0/dist/dossier-check.min.js"
         data-rules="https://cdn.jsdelivr.net/gh/OWNER/briqwise-dossier-check@main/rules.json"
         data-cookieconsent="ignore" defer></script>
 ```
@@ -40,13 +40,26 @@ Page settings → Custom code → Before `</body>` (replace `OWNER`):
 | Key | Meaning |
 | --- | --- |
 | `hubspot.forms.report` / `caseSubmit` | Form GUIDs. While a GUID contains `REPLACE`, nothing is sent (dry run). |
+| `hubspot.loanDurationUnit` | `months` or `years`: unit of `loan_duration_imp` on the Loan. |
 | `ui.gateOutcome` | `true` hides the outcome behind the e-mail form as well. |
 | `ui.meetingUrl`, `ui.phone` | "Plan een call" link and phone number in error messages. |
 | `email.blockFreeMail`, `email.mxCheck`, `email.extraBlockedDomains` | E-mail validation. |
+| `loan.termOptionsMonths` | The terms the slider offers, in months (now 3, 6, 12, 24, 36, 48, 60, 120, 240). The slider snaps to these. Keep in sync with the `dc_term_months` dropdown in HubSpot. |
 | `loan.*` | Min/max amount, LTV cap (0.75), LTV above which the rate goes up (0.70), sweetspot bands. |
 | `repayment.*` | Interest-only up to 50% LTV, the rest linear over 10 years; up to 24 months interest-only up to 70% LTV. |
 | `costs.*`, `guarantee.*`, `rate.*` | Fees, guarantee (15% at LTV ≤ 50%), rate band 6–9% and term surcharges. |
 | `intermediaryFee.*` | Intermediairsregeling. `enabled: false` or a past `validUntil` (YYYY-MM-DD) hides it everywhere. |
+
+## HubSpot setup (once)
+
+`scripts/hubspot-setup.mjs` creates the 31 contact properties (group "Dossier-check"), adds the option "Agrarisch / grond" to `type_bestemming`, and creates the forms "Dossier-check | Rapport" and "Dossier-check | Case indienen" with every field the tool sends. It prints the two form GUIDs for `rules.json`.
+
+```bash
+HUBSPOT_TOKEN=pat-eu1-... node scripts/hubspot-setup.mjs --dry   # shows what it would do
+HUBSPOT_TOKEN=pat-eu1-... node scripts/hubspot-setup.mjs         # does it
+```
+
+Private app scopes: `crm.schemas.contacts.read`, `crm.schemas.contacts.write`, `crm.schemas.custom.read`, `forms`. Never commit the token. The script is safe to re-run.
 
 ## Changing code
 
@@ -56,7 +69,7 @@ npm run build      # writes dist/
 npm test           # needs: pip install playwright (Chromium)
 ```
 
-Then bump `version` in `package.json`, rebuild, commit including `dist/`, and tag the release with the bare version number (`git tag 1.0.0`). Update the version in the Webflow script URL and publish.
+Then bump `version` in `package.json`, rebuild, commit including `dist/`, and tag the release with the bare version number (`git tag 1.1.0`). Update the version in the Webflow script URL and publish.
 
 Test on the live page without sending anything to HubSpot: add `?dc-dry=1` to the URL. Payloads are logged to the console.
 

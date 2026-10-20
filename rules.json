@@ -4,9 +4,10 @@
   "hubspot": {
     "portalId": "25717347",
     "forms": {
-      "report": "REPLACE-WITH-REPORT-FORM-GUID",
-      "caseSubmit": "REPLACE-WITH-CASE-FORM-GUID"
-    }
+      "report": "7b005adc-6bbc-4b51-a285-73736a6bf72a",
+      "caseSubmit": "71fcbb57-bfae-45ea-9fb7-fcfb7ae8ba4a"
+    },
+    "loanDurationUnit": "months"
   },
   "ui": {
     "gateOutcome": false,
@@ -21,6 +22,17 @@
   "loan": {
     "min": 100000,
     "max": 5000000,
+    "termOptionsMonths": [
+      3,
+      6,
+      12,
+      24,
+      36,
+      48,
+      60,
+      120,
+      240
+    ],
     "ltvMax": 0.75,
     "ltvHigherRate": 0.7,
     "sweetspotMax": 1000000,

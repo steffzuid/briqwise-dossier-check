@@ -158,7 +158,7 @@
 <!-- STEP 2 -->
 <section data-step="2" hidden>
 <div class="dc-sl"><div class="dc-slh"><span class="dc-lbl">Gewenste looptijd</span><span class="dc-val" data-dc="lOut"></span></div>
-<input type="range" data-dc="looptijd" min="6" max="240" step="6" value="60" aria-label="Gewenste looptijd">
+<input type="range" data-dc="looptijd" min="0" max="8" step="1" value="6" aria-label="Gewenste looptijd">
 <p class="dc-hint" data-dc="lHint"></p></div>
 <div class="dc-calc">
 <div class="r"><span>Aflossingsvrij</span><b data-dc="cVrij"></b></div>
@@ -231,7 +231,11 @@
 <form data-dc-form="report" novalidate>
 <div class="dc-f2">
 <div><label class="dc-lbl" for="dc-fn">Voornaam</label><input class="dc-in" id="dc-fn" name="firstname" type="text" placeholder="Sanne" autocomplete="given-name" required></div>
+<div><label class="dc-lbl" for="dc-ln">Achternaam</label><input class="dc-in" id="dc-ln" name="lastname" type="text" placeholder="de Vries" autocomplete="family-name" required></div>
+</div>
+<div class="dc-f2">
 <div><label class="dc-lbl" for="dc-em">Zakelijk e-mailadres</label><input class="dc-in" id="dc-em" name="email" type="email" placeholder="sanne@adviesbureau.nl" autocomplete="email" inputmode="email" required></div>
+<div><label class="dc-lbl" for="dc-tel">Telefoonnummer (optioneel)</label><input class="dc-in" id="dc-tel" name="phone" type="tel" placeholder="06 12345678" autocomplete="tel" inputmode="tel"></div>
 </div>
 <span class="dc-lbl">Wat voor kantoor ben je?</span>
 <div class="dc-grid g3" data-g="tint" style="margin-bottom:14px">
@@ -306,10 +310,7 @@
 <div><label class="dc-lbl" for="dc-pc">Postcode</label><input class="dc-in" id="dc-pc" name="postcode_vastgoed" type="text" placeholder="1234 AB" required></div>
 <div><label class="dc-lbl" for="dc-pl">Plaats</label><input class="dc-in" id="dc-pl" name="plaatsnaam_vastgoed" type="text" placeholder="Utrecht"></div>
 </div>
-<div class="dc-f2">
-<div><label class="dc-lbl" for="dc-bn">Naam geldnemer of bedrijf</label><input class="dc-in" id="dc-bn" name="dc_borrower_name" type="text" placeholder="Van Dijk Vastgoed BV" required></div>
-<div><label class="dc-lbl" for="dc-ph">Jouw telefoonnummer</label><input class="dc-in" id="dc-ph" name="phone" type="tel" placeholder="06 12345678" autocomplete="tel" required></div>
-</div>
+<div style="margin-bottom:16px"><label class="dc-lbl" for="dc-ph">Jouw telefoonnummer</label><input class="dc-in" id="dc-ph" name="phone" type="tel" placeholder="06 12345678" autocomplete="tel" inputmode="tel" required></div>
 <label class="dc-lbl" for="dc-nt">Toelichting (optioneel)</label>
 <textarea class="dc-in" id="dc-nt" name="dc_notes" placeholder="Bijvoorbeeld: koopakte moet voor 1 december passeren."></textarea>
 <input type="hidden" name="straatnaam_vastgoed"><input type="hidden" name="huisnummer_vastgoed"><input type="hidden" name="huisnummer_toevoeging_los">

@@ -35,6 +35,11 @@ with sync_playwright() as p:
         page = b.new_page(viewport=vp)
         errs = []
         page.on("pageerror", lambda e: errs.append(str(e)))
+        sent = {}
+        def on_console(m):
+            if "[dossier-check] dry run" in m.text and len(m.args) >= 3:
+                sent[m.args[1].json_value()] = {(x["objectTypeId"], x["name"]): x["value"] for x in m.args[2].json_value()["fields"]}
+        page.on("console", on_console)
         page.route("https://dns.google/**", lambda r: r.fulfill(status=200, content_type="application/json",
             body='{"Status":3}' if "nietbestaand" in r.request.url else '{"Status":0,"Answer":[{"type":15,"data":"10 mx.example.nl."}]}'))
         page.goto(url); page.wait_for_timeout(300)
@@ -51,11 +56,11 @@ with sync_playwright() as p:
         check(txt(page, "cVrij") == "€ 250.000", f"{name}: aflossingsvrij 250k ({txt(page,'cVrij')})")
         check(txt(page, "cAfl") == "€ 5.000 per jaar", f"{name}: aflossing 5k ({txt(page,'cAfl')})")
         # short term rule: 24 mnd -> free up to 70% = 350k -> nothing to repay
-        setrange(page, "looptijd", 24)
+        setrange(page, "looptijd", 3)  # index 3 = 24 mnd
         check(txt(page, "cAfl") == "Geen", f"{name}: 24 mnd no repayment ({txt(page,'cAfl')})")
-        setrange(page, "looptijd", 120)
+        setrange(page, "looptijd", 7)  # 120 mnd
         check("+0,50%" in txt(page, "lHint"), f"{name}: 120 mnd surcharge hint")
-        setrange(page, "looptijd", 60)
+        setrange(page, "looptijd", 6)  # 60 mnd
         page.screenshot(path=str(shots / f"{name}-2.png"), full_page=True)
         page.click('section[data-step="2"] [data-go="3"]')
         page.click('[data-dc="toResult"]')
@@ -68,6 +73,10 @@ with sync_playwright() as p:
         page.wait_for_timeout(4000)  # bot timer
         f = 'form[data-dc-form="report"]'
         page.fill(f + ' [name="firstname"]', "Sanne")
+        page.fill(f + ' [name="email"]', "sanne@vandijkadvies.nl"); page.click('[data-g="tint"] [data-v="makelaar"]')
+        page.click(f + ' [type="submit"]'); page.wait_for_timeout(250)
+        check("achternaam" in page.inner_text(f + ' [data-dc-err]'), f"{name}: lastname required")
+        page.fill(f + ' [name="lastname"]', "de Vries"); page.fill(f + ' [name="phone"]', "06 1234 5678")
         def submit_with(email):
             page.fill(f + ' [name="email"]', email)
             page.click(f + ' [type="submit"]'); page.wait_for_timeout(250)
@@ -86,17 +95,28 @@ with sync_playwright() as p:
         check(txt(page, "dBorg").startswith("€ 300.000"), f"{name}: borg 100% at LTV 60% ({txt(page,'dBorg')})")
         check(txt(page, "dFee") == "€ 8.850", f"{name}: fee 2,95% ({txt(page,'dFee')})")
         page.screenshot(path=str(shots / f"{name}-5-report.png"), full_page=True)
+        rp = sent.get("report", {})
+        for k, v in [("lastname", "de Vries"), ("phone", "06 1234 5678"), ("contact_type", "Intermediair"), ("intermediair_type", "Makelaar"), ("dc_term_months", "60")]:
+            check(rp.get(("0-1", k), "").lower() == v.lower(), f"{name}: report sends {k}={rp.get(('0-1', k))}")
+        check("Borgstelling" in rp.get(("0-1", "dc_report_summary"), ""), f"{name}: summary has borgstelling line")
+        check(not any(k[1] == "dc_borrower_name" for k in rp), f"{name}: no dc_borrower_name")
 
         # case submit
         page.click('[data-dc="openCase"]')
         cf = 'form[data-dc-form="case"]'
         page.fill(cf + ' [name="address"]', "Oudegracht 12"); page.fill(cf + ' [name="postcode_vastgoed"]', "3511 AB")
-        page.fill(cf + ' [name="plaatsnaam_vastgoed"]', "Utrecht"); page.fill(cf + ' [name="dc_borrower_name"]', "Van Dijk Vastgoed BV")
-        page.fill(cf + ' [name="phone"]', "0612345678")
+        page.fill(cf + ' [name="plaatsnaam_vastgoed"]', "Utrecht");
+        check(page.input_value(cf + ' [name="phone"]') == "06 1234 5678", f"{name}: phone prefilled from report")
         page.click(cf + ' [type="submit"]'); page.wait_for_timeout(200)
         check("akkoord" in page.inner_text(cf + ' [data-dc-err]'), f"{name}: consent required")
         page.check(cf + ' [name="dc_client_consent"]'); page.click(cf + ' [type="submit"]'); page.wait_for_timeout(900)
         check(page.is_visible('[data-dc="caseDone"]'), f"{name}: case confirmation shown")
+        cs = sent.get("caseSubmit", {}); L, K = "2-138893726", "2-139157927"
+        for key, v in [((K, "collateral_financing_type"), "purchase"), ((K, "collateral_usage"), "commercial"), ((K, "collateral_country_code"), "nl"),
+                       ((L, "loan_status"), "new"), ((L, "loan_duration_imp"), "60"), ((L, "loan_country"), "nl"), ((L, "loan_amount"), "300000"),
+                       (("0-1", "appraisal_value"), "500000"), (("0-1", "desired_loan_amount"), "300000"), (("0-1", "contact_type"), "Intermediair"),
+                       (("0-1", "email"), "sanne@vandijkadvies.nl")]:
+            check(cs.get(key) == v, f"{name}: case sends {key[1]}={cs.get(key)}")
         page.screenshot(path=str(shots / f"{name}-6-case.png"), full_page=True)
 
         # knockout path

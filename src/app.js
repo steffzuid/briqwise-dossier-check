@@ -39,6 +39,7 @@
   var CONFIG = {
     portalId: RU.hubspot.portalId,
     forms: RU.hubspot.forms,
+    loanDurationUnit: RU.hubspot.loanDurationUnit || 'months',
     endpoint: 'https://api.hsforms.com/submissions/v3/integration/submit/',
     dryRun: /[?&]dc-dry=1/.test(location.search) || !!(SCRIPT && SCRIPT.hasAttribute('data-dry-run')),
     gateOutcome: RU.ui.gateOutcome,
@@ -52,6 +53,7 @@
     rules: {
       min: RU.loan.min, max: RU.loan.max, ltvMax: RU.loan.ltvMax, ltvRateUp: RU.loan.ltvHigherRate, sweet: RU.loan.sweetspotMax, good: RU.loan.goodMax,
       ltvFree: RU.repayment.interestOnlyLtv, ltvFreeShort: RU.repayment.shortTermInterestOnlyLtv, shortTerm: RU.repayment.shortTermMonths, linearYears: RU.repayment.linearYears,
+      terms: RU.loan.termOptionsMonths || [3, 6, 12, 24, 36, 48, 60, 120, 240],
       fee: RU.costs.financingFee, feeMinBase: RU.costs.financingFeeMinBase, mgmt: RU.costs.managementFee,
       borgLowLtv: RU.guarantee.lowLtv, borgLowPct: RU.guarantee.lowLtvPct,
       rateMin: RU.rate.min, rateMax: RU.rate.max, surcharges: (RU.rate.termSurcharges || []).slice().sort(function (a, b) { return b.fromMonths - a.fromMonths; })
@@ -128,6 +130,8 @@
   };
   /* HubSpot option values of existing properties */
   var HS_DOEL = { aankoop: 'Ik wil vastgoed aankopen', herfin: 'Ik wil mijn vastgoed herfinancieren', verbouw: 'Ik wil mijn vastgoed verbouwen', project: 'Ik wil een vastgoed ontwikkelproject financieren', bedrijf: 'Ik wil een bedrijfsfinanciering afsluiten met vastgoed als onderpand' };
+  var FIN_TYPE = { aankoop: 'purchase', herfin: 'refinance', verbouw: 'project', project: 'project', bedrijf: 'refinance' };
+  var USAGE = { woning: 'residential', combi: 'mixed', bedrijfsruimte: 'commercial', winkel: 'commercial', recreatie: 'commercial', grond: 'commercial' };
   var HS_TYPE = { bedrijfsruimte: 'Bedrijfsruimte', combi: 'Bedrijfsruimte + woning/appartement', woning: 'Woning / appartement', winkel: 'Winkel', recreatie: 'Recreatie', grond: 'Agrarisch / grond' };
 
   /* ================= option groups ================= */
@@ -189,7 +193,7 @@
     return { c: c, p: p, eur: b * p / 100 };
   }
   function calc(wAdj) {
-    var w = +$('waarde').value * (1 + (wAdj || 0) / 100), b = +$('bedrag').value, m = +$('looptijd').value, l = b / w;
+    var w = +$('waarde').value * (1 + (wAdj || 0) / 100), b = +$('bedrag').value, m = termAt($('looptijd').value), l = b / w;
     var dl = docList(), have = dl.filter(function (d) { return done[d[0]]; });
     var pct = Math.round(have.length / dl.length * 100);
     var ko = S.excl === 'ja' ? 'branche' : S.eig === 'opstal' ? 'opstal' : (S.aanvrager === 'prive' && S.gebruik === 'eigen') ? 'consument' : '';
@@ -206,6 +210,8 @@
       v: vergoeding(b, l, m, pct)
     };
   }
+  /* the slider moves over an index; the months come from rules.loan.termOptionsMonths */
+  function termAt(i) { var t = R.terms; return t[Math.max(0, Math.min(t.length - 1, +i))]; }
   function monthly(r, rate) { return (r.b * rate / 100 + r.a.perJaar) / 12; }
 
   var ST = { knockout: ['da', 'Niet mogelijk'], term_sheet: ['ok', 'Kansrijk'], dossier_aanvullen: ['wa', 'Aanvullen'], maatwerk: ['mw', 'Maatwerk'] };
@@ -346,7 +352,7 @@
   function caseFields(r) {
     var C = CONFIG.objects.contact;
     var f = [
-      /* contact_type is a multi-checkbox: a form would overwrite it, so the workflow adds "Intermediair" instead */
+      F('contact_type', 'Intermediair'), // API submissions do not apply a form's hidden default, so the tool sends it
       F('bw_business_unit', '_briqwise b.v.'),
       F('doel_financiering', HS_DOEL[S.doel]),
       F('type_bestemming', HS_TYPE[S.type]),
@@ -375,7 +381,8 @@
       'Leensom ' + eur(r.b) + ' | Waarde ' + eur(r.w) + ' | LTV ' + (r.l * 100).toFixed(1).replace('.', ',') + '% | Looptijd ' + r.m + ' mnd',
       LBL.doel[S.doel] + ' | ' + LBL.type[S.type] + ' | ' + LBL.gebruik[S.gebruik] + ' | ' + LBL.aanvrager[S.aanvrager] + ' | ' + (S.eig === 'vol' ? 'Volle eigendom' : S.eig === 'erfpacht' ? 'Erfpacht' : 'Opstal'),
       'Max. financiering ' + eur(r.maxF) + ' | Aflossing ' + eur(r.a.perJaar) + ' p/j | Indicatie maandlast ' + eur(monthly(r, r.rLo)) + ' - ' + eur(monthly(r, r.rHi)),
-      'Dossier ' + r.pct + '% compleet | Ontbreekt: ' + (r.miss.map(function (d) { return d[1]; }).join(', ') || 'niets'),
+      'Borgstelling ' + (S.aanvrager === 'bv' ? eur(r.borg) : 'n.v.t.') + ' | Financieringsfee ' + eur(r.fee) + ' | Beheer ' + eur(r.mgmt) + ' p/j | Rente indicatief ' + pc(r.rLo) + ' - ' + pc(r.rHi),
+      (FEE_ON ? 'Vergoeding intermediair ' + pc(r.v.p) + ' (' + eur(r.v.eur) + ') | ' : '') + 'Dossier ' + r.pct + '% compleet | Ontbreekt: ' + (r.miss.map(function (d) { return d[1]; }).join(', ') || 'niets'),
       'Bijzonderheden: ' + (BIJZ.filter(function (x) { return bz[x[0]]; }).map(function (x) { return x[1]; }).join(', ') || 'geen') + ' | Bank afgewezen: ' + S.bank + ' | Urgentie: ' + URG[+$('urg').value]
     ].join('\n');
   }
@@ -429,18 +436,21 @@
       e.preventDefault(); e.stopImmediatePropagation();
       var f = forms.report, r = lastResult || calc();
       if (!val(f, 'firstname')) return setErr('report', 'Vul je voornaam in.');
+      if (f.querySelector('[name="lastname"]') && !val(f, 'lastname')) return setErr('report', 'Vul je achternaam in.');
+      if (val(f, 'phone') && val(f, 'phone').replace(/\D/g, '').length < 10) return setErr('report', 'Vul een geldig telefoonnummer in, of laat het veld leeg.');
       var tint = val(f, 'intermediair_type') || S.tint;
       if (!tint) return setErr('report', 'Kies wat voor kantoor je bent.');
       busy(f, true);
       validateEmail(val(f, 'email')).then(function (m) {
         if (m) { busy(f, false); if (em) em.classList.add('bad'); return setErr('report', m); }
         if (isBot(f)) { busy(f, false); return showReport(r); }
-        var fields = [F('firstname', val(f, 'firstname')), F('email', val(f, 'email').toLowerCase()), F('intermediair_type', tint)];
+        var fields = [F('firstname', val(f, 'firstname')), F('lastname', val(f, 'lastname')), F('email', val(f, 'email').toLowerCase()), F('phone', val(f, 'phone')), F('intermediair_type', tint)];
         if (val(f, 'marketing_consent')) fields.push(F('marketing_consent', 'true'));
         return hsSubmit('report', fields.concat(caseFields(r))).then(function (res) {
           busy(f, false);
           if (!res.ok) return setErr('report', res.msg);
           ss('dc_email', val(f, 'email').toLowerCase());
+          var ph = forms.caseSubmit && forms.caseSubmit.querySelector('[name="phone"]'); if (ph && !ph.value) ph.value = val(f, 'phone');
           track('generate_lead', { dc_form: 'report', dc_outcome: r.o, dc_intermediair_type: tint });
           showReport(r);
         });
@@ -492,7 +502,6 @@
       var pcode = val(f, 'postcode_vastgoed').toUpperCase().replace(/\s+/g, '');
       if (!val(f, 'address')) return setErr('caseSubmit', 'Vul het adres van het onderpand in.');
       if (!/^\d{4}[A-Z]{2}$/.test(pcode)) return setErr('caseSubmit', 'Vul een geldige postcode in, bijvoorbeeld 1234AB.');
-      if (!val(f, 'dc_borrower_name')) return setErr('caseSubmit', 'Vul de naam van de geldnemer of het bedrijf in.');
       if (val(f, 'phone').replace(/\D/g, '').length < 10) return setErr('caseSubmit', 'Vul een geldig telefoonnummer in.');
       if (!val(f, 'dc_client_consent')) return setErr('caseSubmit', 'Bevestig dat je klant akkoord is met het delen van de gegevens.');
       var email = ss('dc_email') || val(forms.report, 'email').toLowerCase();
@@ -503,14 +512,17 @@
       var full = street ? (street + ' ' + nr + add + (city ? ', ' + city : '')) : val(f, 'address');
       var fields = [
         F('email', email), F('phone', val(f, 'phone')),
-        F('dc_borrower_name', val(f, 'dc_borrower_name')), F('dc_notes', val(f, 'dc_notes')), F('dc_client_consent', 'true'),
+        F('dc_notes', val(f, 'dc_notes')), F('dc_client_consent', 'true'),
+        F('appraisal_value', Math.round(r.w)), F('desired_loan_amount', r.b),
         F('dc_case_submitted', 'true'),
         F('straatnaam_vastgoed', street), F('huisnummer_vastgoed', nr), F('huisnummer_toevoeging_los', add),
         F('postcode_vastgoed', pcode), F('plaatsnaam_vastgoed', city),
         F('collateral_address_full', full, K), F('collateral_street', street, K), F('collateral_house_number', nr, K),
         F('collateral_house_number_addition', add, K), F('collateral_postal_code', pcode, K), F('collateral_city', city, K),
-        F('collateral_country_code', 'NL', K), F('collateral_appraisal_value', Math.round(r.w), K),
-        F('loan_amount', r.b, L), F('bi_loans_id', loanId(), L), F('loan_country', 'NL', L)
+        F('collateral_country_code', 'nl', K), F('collateral_appraisal_value', Math.round(r.w), K),
+        F('collateral_financing_type', FIN_TYPE[S.doel], K), F('collateral_usage', USAGE[S.type], K),
+        F('loan_amount', r.b, L), F('loan_duration_imp', CONFIG.loanDurationUnit === 'years' ? Math.round(r.m / 12 * 10) / 10 : r.m, L),
+        F('loan_status', 'new', L), F('bi_loans_id', loanId(), L), F('loan_country', 'nl', L)
       ].concat(caseFields(r)).filter(function (x) { return x.value !== ''; });
       hsSubmit('caseSubmit', fields).then(function (res) {
         if (!res.ok) { busy(f, false); return setErr('caseSubmit', res.msg); }
@@ -524,6 +536,7 @@
   /* ================= rule-driven UI ================= */
   (function applyRules() {
     var b = $('bedrag'); b.min = R.min; b.max = R.max; b.value = Math.min(R.max, Math.max(R.min, +b.value));
+    var lt = $('looptijd'), i60 = R.terms.indexOf(60); lt.max = R.terms.length - 1; lt.value = i60 > -1 ? i60 : Math.floor(R.terms.length / 2);
     $('minL').textContent = eur(R.min); $('maxL').textContent = 'max. ' + eur(R.max);
     $('tickMax').style.left = $('tickMaxL').style.left = (R.ltvMax * 100) + '%'; $('tickMaxL').textContent = 'max ' + pctL(R.ltvMax);
     $('tickFree').style.left = $('tickFreeL').style.left = (R.ltvFree * 100) + '%'; $('tickFreeL').textContent = pctL(R.ltvFree);
