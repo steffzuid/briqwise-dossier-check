@@ -42,7 +42,7 @@ Page settings → Custom code → Before `</body>` (replace `OWNER`):
 | `hubspot.forms.report` / `caseSubmit` | Form GUIDs. While a GUID contains `REPLACE`, nothing is sent (dry run). |
 | `hubspot.loanDurationUnit` | `months` or `years`: unit of `loan_duration_imp` on the Loan. |
 | `ui.gateOutcome` | `true` hides the outcome behind the e-mail form as well. |
-| `ui.meetingTrigger` | CSS selector of the page element that opens the site's meeting modal (now `.lower-third-meeting_link`). If it is not on the page, or the screen is narrower than `ui.meetingModalMinWidth` (768px), the button opens `ui.meetingUrl` (Guus' meeting page). |
+| `ui.meetingModalMinWidth` | From this screen width (768px) "Plan een call" opens the meeting page in the tool's own pop-up; below it, it opens the page itself. |
 | `ui.meetingUrl`, `ui.phone` | "Plan een call" link and phone number in error messages. |
 | `email.blockFreeMail`, `email.mxCheck`, `email.extraBlockedDomains` | E-mail validation. |
 | `loan.termOptionsMonths` | The terms the slider offers, in months (now 3, 6, 12, 24, 36, 48, 60, 120, 240). The slider snaps to these. Keep in sync with the `dc_term_months` dropdown in HubSpot. |

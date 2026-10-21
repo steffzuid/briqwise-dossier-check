@@ -12,7 +12,6 @@
   "ui": {
     "gateOutcome": false,
     "meetingUrl": "https://meetings-eu1.hubspot.com/guus-oerlemans",
-    "meetingTrigger": ".lower-third-meeting_link",
     "meetingModalMinWidth": 768,
     "phone": "085 130 37 86"
   },

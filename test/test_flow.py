@@ -111,12 +111,14 @@ with sync_playwright() as p:
         # case submit
         lk = page.eval_on_selector('[data-dc="meetLink"]', "e=>getComputedStyle(e).position+'/'+getComputedStyle(e).top")
         check(lk.startswith("static"), f"{name}: call button not positioned by host CSS ({lk})")
-        page.evaluate("document.body.insertAdjacentHTML('beforeend','<a href=\"#\" class=\"lower-third-meeting_link\" onclick=\"window.__modal=1;return false\"></a>')")
-        page.click('[data-dc="meetLink"]'); page.wait_for_timeout(100)
+        page.click('[data-dc="meetLink"]'); page.wait_for_timeout(300)
+        shown = page.evaluate("(() => { const m = document.querySelector('[data-dc-meeting]'); return !!m && getComputedStyle(m).display === 'flex'; })()")
         if name == "desktop":
-            check(page.evaluate("window.__modal") == 1, f"{name}: call button opens site meeting modal")
+            check(shown and "embed=true" in page.get_attribute('[data-dc-meeting] iframe', "src"), f"{name}: call button opens meeting pop-up")
+            page.click('[data-dc-meeting] [data-dc-close]'); page.wait_for_timeout(100)
+            check(page.is_hidden('[data-dc-meeting]'), f"{name}: meeting pop-up closes")
         else:
-            check(page.evaluate("window.__modal") is None, f"{name}: call button skips the modal on mobile")
+            check(not shown, f"{name}: call button skips the pop-up on mobile")
         check(page.get_attribute('[data-dc="meetLink"]', "href").startswith("https://meetings-eu1.hubspot.com/guus-oerlemans"), f"{name}: call button links to Guus' meeting page")
         page.click('[data-dc="openCase"]')
         cf = 'form[data-dc-form="case"]'

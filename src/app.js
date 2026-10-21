@@ -47,7 +47,6 @@
     mxCheck: RU.email.mxCheck,
     extraBlocked: RU.email.extraBlockedDomains || [],
     meetingUrl: RU.ui.meetingUrl,
-    meetingTrigger: RU.ui.meetingTrigger || '',
     meetingModalMinWidth: RU.ui.meetingModalMinWidth || 768,
     phone: RU.ui.phone,
     googleMapsKey: 'AIzaSyAvGTcXSgj4Zp2y-5ldz0UPNzWZ6qYb2cA', // same key as /lenen/stap-1
@@ -549,12 +548,31 @@
   }
 
   /* "Plan een call" opens the site's own meeting modal when the page has its trigger, else the meeting URL */
+  /* "Plan een call": on desktop the tool's own pop-up with the HubSpot meeting page embedded
+     (the site's Webflow modal does not open reliably from code); on small screens the meeting page itself */
+  var meetBox = null;
+  function closeMeeting() { if (meetBox) { meetBox.style.display = 'none'; document.documentElement.style.overflow = ''; } }
+  function openMeeting(url) {
+    if (!meetBox) {
+      meetBox = document.createElement('div');
+      meetBox.setAttribute('data-dc-meeting', '');
+      meetBox.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(28,0,87,.55);display:none;align-items:center;justify-content:center;padding:24px;box-sizing:border-box';
+      meetBox.innerHTML = '<div style="position:relative;background:#fff;border-radius:16px;width:100%;max-width:760px;height:min(720px,90vh);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.25)">' +
+        '<button type="button" aria-label="Sluiten" data-dc-close style="position:absolute;top:10px;right:10px;z-index:1;width:36px;height:36px;border-radius:50%;border:0;background:#fff;color:#1c0057;font:600 22px/36px sans-serif;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.2);padding:0">&times;</button>' +
+        '<iframe title="Plan een call" style="width:100%;height:100%;border:0;display:block" loading="lazy"></iframe></div>';
+      meetBox.addEventListener('click', function (e) { if (e.target === meetBox || e.target.hasAttribute('data-dc-close')) closeMeeting(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMeeting(); });
+      document.body.appendChild(meetBox);
+    }
+    var f = meetBox.querySelector('iframe'), src = url + (url.indexOf('?') > -1 ? '&' : '?') + 'embed=true';
+    if (f.getAttribute('src') !== src) f.setAttribute('src', src);
+    meetBox.style.display = 'flex'; document.documentElement.style.overflow = 'hidden';
+  }
   $('meetLink').addEventListener('click', function (e) {
-    /* on small screens the site's meeting modal is cramped: open the meeting page instead */
     var small = window.matchMedia && window.matchMedia('(max-width: ' + (CONFIG.meetingModalMinWidth - 1) + 'px)').matches;
-    var t = !small && CONFIG.meetingTrigger && document.querySelector(CONFIG.meetingTrigger);
-    track('meeting_click', { dc_via: t ? 'modal' : 'link' });
-    if (t) { e.preventDefault(); t.click(); }
+    var embeddable = /meetings(-eu1)?\.hubspot\.com\//.test(CONFIG.meetingUrl);
+    track('meeting_click', { dc_via: !small && embeddable ? 'modal' : 'link' });
+    if (!small && embeddable) { e.preventDefault(); openMeeting(CONFIG.meetingUrl); }
   });
 
   if ($('phEdit')) $('phEdit').addEventListener('click', function (e) {
