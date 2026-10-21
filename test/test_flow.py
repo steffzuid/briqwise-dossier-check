@@ -113,7 +113,11 @@ with sync_playwright() as p:
         check(lk.startswith("static"), f"{name}: call button not positioned by host CSS ({lk})")
         page.evaluate("document.body.insertAdjacentHTML('beforeend','<a href=\"#\" class=\"lower-third-meeting_link\" onclick=\"window.__modal=1;return false\"></a>')")
         page.click('[data-dc="meetLink"]'); page.wait_for_timeout(100)
-        check(page.evaluate("window.__modal") == 1 and len(b.contexts[0].pages) == len(b.contexts[0].pages), f"{name}: call button opens site meeting modal")
+        if name == "desktop":
+            check(page.evaluate("window.__modal") == 1, f"{name}: call button opens site meeting modal")
+        else:
+            check(page.evaluate("window.__modal") is None, f"{name}: call button skips the modal on mobile")
+        check(page.get_attribute('[data-dc="meetLink"]', "href").startswith("https://meetings-eu1.hubspot.com/guus-oerlemans"), f"{name}: call button links to Guus' meeting page")
         page.click('[data-dc="openCase"]')
         cf = 'form[data-dc-form="case"]'
         page.fill(cf + ' [name="address"]', "Oudegracht 12"); page.fill(cf + ' [name="postcode_vastgoed"]', "3511 AB")

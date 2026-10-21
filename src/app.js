@@ -48,6 +48,7 @@
     extraBlocked: RU.email.extraBlockedDomains || [],
     meetingUrl: RU.ui.meetingUrl,
     meetingTrigger: RU.ui.meetingTrigger || '',
+    meetingModalMinWidth: RU.ui.meetingModalMinWidth || 768,
     phone: RU.ui.phone,
     googleMapsKey: 'AIzaSyAvGTcXSgj4Zp2y-5ldz0UPNzWZ6qYb2cA', // same key as /lenen/stap-1
     objects: { contact: '0-1', company: '0-2', loan: '2-138893726', collateral: '2-139157927' },
@@ -549,7 +550,9 @@
 
   /* "Plan een call" opens the site's own meeting modal when the page has its trigger, else the meeting URL */
   $('meetLink').addEventListener('click', function (e) {
-    var t = CONFIG.meetingTrigger && document.querySelector(CONFIG.meetingTrigger);
+    /* on small screens the site's meeting modal is cramped: open the meeting page instead */
+    var small = window.matchMedia && window.matchMedia('(max-width: ' + (CONFIG.meetingModalMinWidth - 1) + 'px)').matches;
+    var t = !small && CONFIG.meetingTrigger && document.querySelector(CONFIG.meetingTrigger);
     track('meeting_click', { dc_via: t ? 'modal' : 'link' });
     if (t) { e.preventDefault(); t.click(); }
   });

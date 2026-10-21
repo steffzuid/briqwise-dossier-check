@@ -7,6 +7,7 @@
 #bw-dc .dc-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px;font-size:13px;color:var(--mu)}
 #bw-dc .dc-eyebrow{font-weight:700;color:var(--or);text-transform:none}
 #bw-dc .dc-lbl{font-size:14px;font-weight:600;color:var(--v);margin:0 0 8px;display:block}
+#bw-dc .dc-req{color:var(--or);margin-left:2px;font-weight:700}
 #bw-dc .dc-hint{font-size:13px;color:var(--mu);margin:4px 0 0}
 #bw-dc .dc-meter{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:center;background:var(--pe2);border-radius:12px;padding:14px 16px;margin-bottom:24px}
 #bw-dc .dc-bar{position:relative;height:10px;border-radius:5px;background:#fff}
@@ -239,18 +240,18 @@
 <!-- Fallback form. Place a native Webflow form with data-dc-form="report" on the page to use that one instead. -->
 <form data-dc-form="report" novalidate>
 <div class="dc-f2">
-<div><label class="dc-lbl" for="dc-fn">Voornaam</label><input class="dc-in" id="dc-fn" name="firstname" type="text" placeholder="Sanne" autocomplete="given-name" required></div>
-<div><label class="dc-lbl" for="dc-ln">Achternaam</label><input class="dc-in" id="dc-ln" name="lastname" type="text" placeholder="de Vries" autocomplete="family-name" required></div>
+<div><label class="dc-lbl" for="dc-fn">Voornaam<span class="dc-req" aria-hidden="true">*</span></label><input class="dc-in" id="dc-fn" name="firstname" type="text" placeholder="Sanne" autocomplete="given-name" required></div>
+<div><label class="dc-lbl" for="dc-ln">Achternaam<span class="dc-req" aria-hidden="true">*</span></label><input class="dc-in" id="dc-ln" name="lastname" type="text" placeholder="de Vries" autocomplete="family-name" required></div>
 </div>
 <div class="dc-f2">
-<div><label class="dc-lbl" for="dc-em">Zakelijk e-mailadres</label><input class="dc-in" id="dc-em" name="email" type="email" placeholder="sanne@adviesbureau.nl" autocomplete="email" inputmode="email" required></div>
+<div><label class="dc-lbl" for="dc-em">Zakelijk e-mailadres<span class="dc-req" aria-hidden="true">*</span></label><input class="dc-in" id="dc-em" name="email" type="email" placeholder="sanne@adviesbureau.nl" autocomplete="email" inputmode="email" required></div>
 <div><label class="dc-lbl" for="dc-tel">Telefoonnummer (optioneel)</label><input class="dc-in" id="dc-tel" name="phone" type="tel" placeholder="06 12345678" autocomplete="tel" inputmode="tel"></div>
 </div>
 <div class="dc-f2">
-<div><label class="dc-lbl" for="dc-co">Kantoornaam</label><input class="dc-in" id="dc-co" name="company" type="text" placeholder="Van Dijk Advies" autocomplete="organization" required></div>
-<div><label class="dc-lbl" for="dc-zip">Postcode kantoor</label><input class="dc-in" id="dc-zip" name="zip" type="text" placeholder="7571" autocomplete="postal-code" inputmode="numeric" maxlength="7" required></div>
+<div><label class="dc-lbl" for="dc-co">Kantoornaam<span class="dc-req" aria-hidden="true">*</span></label><input class="dc-in" id="dc-co" name="company" type="text" placeholder="Van Dijk Advies" autocomplete="organization" required></div>
+<div><label class="dc-lbl" for="dc-zip">Postcode kantoor<span class="dc-req" aria-hidden="true">*</span></label><input class="dc-in" id="dc-zip" name="zip" type="text" placeholder="7571" autocomplete="postal-code" inputmode="numeric" maxlength="7" required></div>
 </div>
-<span class="dc-lbl">Wat voor kantoor ben je?</span>
+<span class="dc-lbl">Wat voor kantoor ben je?<span class="dc-req" aria-hidden="true">*</span></span>
 <div class="dc-grid g3" data-g="tint" style="margin-bottom:14px">
 <button type="button" class="dc-opt col" data-v="financieringsadviseur" data-i="pie">Financierings&shy;adviseur</button>
 <button type="button" class="dc-opt col" data-v="accountant_administratie" data-i="calc">Accountant of administratie</button>
@@ -317,19 +318,19 @@
 <p class="dc-hint" style="margin:-4px 0 14px">Je accountmanager neemt binnen &eacute;&eacute;n werkdag contact op en vraagt de ontbrekende documenten op.</p>
 <div data-dc-slot="case">
 <form data-dc-form="case" novalidate>
-<label class="dc-lbl" for="dc-adr">Adres van het onderpand</label>
+<label class="dc-lbl" for="dc-adr">Adres van het onderpand<span class="dc-req" aria-hidden="true">*</span></label>
 <input class="dc-in" id="dc-adr" name="address" type="text" placeholder="Straatnaam en huisnummer" autocomplete="off" required>
 <div class="dc-f2" style="margin-top:14px">
-<div><label class="dc-lbl" for="dc-pc">Postcode</label><input class="dc-in" id="dc-pc" name="postcode_vastgoed" type="text" placeholder="1234 AB" required></div>
+<div><label class="dc-lbl" for="dc-pc">Postcode<span class="dc-req" aria-hidden="true">*</span></label><input class="dc-in" id="dc-pc" name="postcode_vastgoed" type="text" placeholder="1234 AB" required></div>
 <div><label class="dc-lbl" for="dc-pl">Plaats</label><input class="dc-in" id="dc-pl" name="plaatsnaam_vastgoed" type="text" placeholder="Utrecht"></div>
 </div>
 <p class="dc-hint" style="margin:0 0 16px" data-dc="phKnown" hidden>Je accountmanager belt je op <b data-dc="phVal"></b>. <a href="#" data-dc="phEdit" style="color:var(--or)">Ander nummer?</a></p>
-<div style="margin-bottom:16px" data-dc="phWrap"><label class="dc-lbl" for="dc-ph">Jouw telefoonnummer</label><input class="dc-in" id="dc-ph" name="phone" type="tel" placeholder="06 12345678" autocomplete="tel" inputmode="tel" required></div>
+<div style="margin-bottom:16px" data-dc="phWrap"><label class="dc-lbl" for="dc-ph">Jouw telefoonnummer<span class="dc-req" aria-hidden="true">*</span></label><input class="dc-in" id="dc-ph" name="phone" type="tel" placeholder="06 12345678" autocomplete="tel" inputmode="tel" required></div>
 <label class="dc-lbl" for="dc-nt">Toelichting (optioneel)</label>
 <textarea class="dc-in" id="dc-nt" name="dc_notes" placeholder="Bijvoorbeeld: koopakte moet voor 1 december passeren."></textarea>
 <input type="hidden" name="straatnaam_vastgoed"><input type="hidden" name="huisnummer_vastgoed"><input type="hidden" name="huisnummer_toevoeging_los">
 <input class="dc-hp" type="text" name="dc_website" tabindex="-1" autocomplete="off" aria-hidden="true">
-<label class="dc-check"><input type="checkbox" name="dc_client_consent" value="true" required> Mijn klant is akkoord dat ik deze gegevens met Briqwise deel.</label>
+<label class="dc-check"><input type="checkbox" name="dc_client_consent" value="true" required> Mijn klant is akkoord dat ik deze gegevens met Briqwise deel.<span class="dc-req" aria-hidden="true">*</span></label>
 <p class="dc-err" data-dc-err></p>
 <button type="submit" class="dc-btn full" style="margin-top:10px">Case indienen &rarr;</button>
 </form>

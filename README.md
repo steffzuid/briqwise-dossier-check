@@ -42,7 +42,7 @@ Page settings → Custom code → Before `</body>` (replace `OWNER`):
 | `hubspot.forms.report` / `caseSubmit` | Form GUIDs. While a GUID contains `REPLACE`, nothing is sent (dry run). |
 | `hubspot.loanDurationUnit` | `months` or `years`: unit of `loan_duration_imp` on the Loan. |
 | `ui.gateOutcome` | `true` hides the outcome behind the e-mail form as well. |
-| `ui.meetingTrigger` | CSS selector of the page element that opens the site's meeting modal (now `.lower-third-meeting_link`). If it is not on the page, the button opens `ui.meetingUrl`. |
+| `ui.meetingTrigger` | CSS selector of the page element that opens the site's meeting modal (now `.lower-third-meeting_link`). If it is not on the page, or the screen is narrower than `ui.meetingModalMinWidth` (768px), the button opens `ui.meetingUrl` (Guus' meeting page). |
 | `ui.meetingUrl`, `ui.phone` | "Plan een call" link and phone number in error messages. |
 | `email.blockFreeMail`, `email.mxCheck`, `email.extraBlockedDomains` | E-mail validation. |
 | `loan.termOptionsMonths` | The terms the slider offers, in months (now 3, 6, 12, 24, 36, 48, 60, 120, 240). The slider snaps to these. Keep in sync with the `dc_term_months` dropdown in HubSpot. |
@@ -61,6 +61,15 @@ HUBSPOT_TOKEN=pat-eu1-... node scripts/hubspot-setup.mjs         # does it
 ```
 
 Private app scopes: `crm.schemas.contacts.read`, `crm.schemas.contacts.write`, `crm.schemas.custom.read`, `forms`. Never commit the token. The script is safe to re-run.
+
+### Workflows
+
+`scripts/hubspot-workflows.mjs` creates the two dossier-check workflows, switched off for review: Rapport (owner by office postcode when empty, same ranges as workflow 699106543, then e-mail 01 or 02 by outcome) and Case (e-mail 03). Needs the `automation` scope. Publish the three e-mails first.
+
+```bash
+HUBSPOT_TOKEN=... node scripts/hubspot-workflows.mjs --dry
+HUBSPOT_TOKEN=... node scripts/hubspot-workflows.mjs
+```
 
 ## Changing code
 
