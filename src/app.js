@@ -272,7 +272,9 @@
   stepper.forEach(function (li) {
     li.querySelector('button').addEventListener('click', function () { var k = +li.getAttribute('data-sn'); if (k < stepNow && k < 4) go(k); });
   });
-  function go(n) {
+  var HIST = !!(window.history && history.pushState);
+  function go(n, fromHistory) {
+    if (HIST && !fromHistory && n !== stepNow) { try { history.pushState(Object.assign({}, history.state, { dcStep: n }), ''); } catch (e) {} }
     steps.forEach(function (s) {
       var on = s.getAttribute('data-step') === String(n); s.hidden = !on;
       s.classList.remove('dc-enter'); if (on && n !== stepNow) { void s.offsetWidth; s.classList.add('dc-enter'); }
@@ -280,8 +282,14 @@
     stepNow = n; paintSteps(n);
     $('stepLbl').textContent = n < 4 ? 'Stap ' + n + ' van 3' : 'Uitkomst';
     $('stepTitle').textContent = STEP_TXT[n][0]; $('stepIntro').textContent = STEP_TXT[n][1];
+    $('prevBtn').hidden = n < 2;
     if (root.getBoundingClientRect().top < 0) root.scrollIntoView({ behavior: 'smooth', block: 'start' });
     track('step', { dc_step: n });
+  }
+  $('prevBtn').addEventListener('click', function () { if (stepNow > 1) go(stepNow - 1); });
+  if (HIST) {
+    try { history.replaceState(Object.assign({}, history.state, { dcStep: 1 }), ''); } catch (e) {}
+    window.addEventListener('popstate', function (e) { var k = e.state && e.state.dcStep; if (k && k !== stepNow) go(k, true); });
   }
   $$('[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(+b.getAttribute('data-go')); }); });
 

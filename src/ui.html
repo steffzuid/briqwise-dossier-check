@@ -9,6 +9,12 @@
 #bw-dc .dc-lbl{font-size:14px;font-weight:600;color:var(--v);margin:0 0 8px;display:block}
 #bw-dc .dc-req{color:var(--or);margin-left:2px;font-weight:700}
 #bw-dc .dc-hint{font-size:13px;color:var(--mu);margin:4px 0 0}
+#bw-dc .dc-topr{display:inline-flex;align-items:baseline;gap:14px}
+#bw-dc .dc-prev{all:unset;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;color:var(--v);text-decoration:underline;text-underline-offset:3px}
+#bw-dc .dc-prev:hover{color:var(--or)}
+#bw-dc .dc-prev:focus-visible{outline:2px solid var(--or);outline-offset:3px;border-radius:3px}
+#bw-dc .dc-prev[hidden]{display:none}
+@media (max-width:560px){#bw-dc .dc-prev:not([hidden])+span{display:none}}
 #bw-dc .dc-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;list-style:none;margin:10px 0 22px;padding:0}
 #bw-dc .dc-steps li{margin:0;padding:0;min-width:0}
 #bw-dc .dc-steps button{all:unset;box-sizing:border-box;display:grid;gap:8px;width:100%;cursor:default;font-family:inherit}
@@ -94,8 +100,8 @@
 #bw-dc .dc-in.bad{border-color:var(--da)}
 #bw-dc .dc-f2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:16px}
 #bw-dc .dc-err{font-size:13px;color:var(--da);margin:6px 0 0;min-height:0}
-#bw-dc .dc-check{display:flex;gap:10px;font-size:13px;color:var(--mu);align-items:flex-start;margin:6px 0}
-#bw-dc .dc-check input{width:18px;height:18px;margin-top:1px;flex-shrink:0;accent-color:var(--or)}
+#bw-dc .dc-cbx{width:auto;height:auto;max-width:none;flex:none;display:flex;gap:10px;font-weight:400;line-height:1.45;font-size:13px;color:var(--mu);align-items:flex-start;margin:6px 0}
+#bw-dc .dc-cbx input{width:18px;height:18px;margin-top:1px;flex-shrink:0;accent-color:var(--or)}
 #bw-dc .dc-out{display:flex;gap:12px;align-items:flex-start;border-radius:12px;padding:16px;margin-bottom:24px;border:1px solid}
 #bw-dc .dc-out svg{width:24px;height:24px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}
 #bw-dc .dc-out p{margin:0}
@@ -142,7 +148,7 @@
 
 <div id="bw-dc" data-dc-root>
 <div class="dc-card">
-<div class="dc-top"><span class="dc-eyebrow">Dossier-check voor intermediairs</span><span data-dc="stepLbl">Stap 1 van 3</span></div>
+<div class="dc-top"><span class="dc-eyebrow">Dossier-check voor intermediairs</span><span class="dc-topr"><button type="button" class="dc-prev" data-dc="prevBtn" hidden>&larr; Vorige stap</button><span data-dc="stepLbl">Stap 1 van 3</span></span></div>
 <ol class="dc-steps" data-dc="stepper" aria-label="Voortgang">
 <li data-sn="1"><button type="button" tabindex="-1"><span class="r"><span class="n">1</span><span class="t">Pand en bedrag</span></span></button></li>
 <li data-sn="2"><button type="button" tabindex="-1"><span class="r"><span class="n">2</span><span class="t">Aanvrager en stukken</span></span></button></li>
@@ -295,7 +301,7 @@
 </div>
 <input type="hidden" name="intermediair_type">
 <input class="dc-hp" type="text" name="dc_website" tabindex="-1" autocomplete="off" aria-hidden="true">
-<label class="dc-check"><input type="checkbox" name="marketing_consent" value="true"> Ik ontvang graag kennis en updates van Briqwise voor intermediairs.</label>
+<label class="dc-cbx"><input type="checkbox" name="marketing_consent" value="true"> Ik ontvang graag kennis en updates van Briqwise voor intermediairs.</label>
 <p class="dc-err" data-dc-err></p>
 <button type="submit" class="dc-btn full" style="margin-top:10px">Stuur mijn rapport &rarr;</button>
 <p class="dc-small" style="text-align:center">Direct in je inbox, plus de checklist volledig dossier. We gebruiken je gegevens volgens onze <a href="/privacyverklaring" style="color:inherit">privacyverklaring</a>.</p>
@@ -363,7 +369,7 @@
 <textarea class="dc-in" id="dc-nt" name="dc_notes" placeholder="Bijvoorbeeld: koopakte moet voor 1 december passeren."></textarea>
 <input type="hidden" name="straatnaam_vastgoed"><input type="hidden" name="huisnummer_vastgoed"><input type="hidden" name="huisnummer_toevoeging_los">
 <input class="dc-hp" type="text" name="dc_website" tabindex="-1" autocomplete="off" aria-hidden="true">
-<label class="dc-check"><input type="checkbox" name="dc_client_consent" value="true" required> Mijn klant is akkoord dat ik deze gegevens met Briqwise deel.<span class="dc-req" aria-hidden="true">*</span></label>
+<label class="dc-cbx"><input type="checkbox" name="dc_client_consent" value="true" required> Mijn klant is akkoord dat ik deze gegevens met Briqwise deel.<span class="dc-req" aria-hidden="true">*</span></label>
 <p class="dc-err" data-dc-err></p>
 <button type="submit" class="dc-btn full" style="margin-top:10px">Case indienen &rarr;</button>
 </form>
