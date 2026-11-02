@@ -235,7 +235,10 @@
       var el = $(k[1]), on = KO_ON[k[0]](); el.hidden = !on; if (on) el.textContent = KO[k[0]];
     });
     $('lOut').textContent = lt(r.m);
-    $('lHint').textContent = r.ops ? 'Renteopslag van +' + pc(r.ops) + ' bij deze looptijd. Investeerders hebben voorkeur voor 60 maanden.' : (r.m === 60 ? 'Voorkeurslooptijd van investeerders.' : 'Investeerders hebben voorkeur voor 60 maanden.');
+    var lh = $('lHint');
+    if (r.ops) { lh.className = 'dc-note wa'; lh.innerHTML = svg('alert') + '<span><b>Renteopslag van +' + pc(r.ops) + '</b> bij deze looptijd. Investeerders hebben een voorkeur voor 60 maanden.</span>'; }
+    else if (r.m === 60) { lh.className = 'dc-note ok'; lh.innerHTML = svg('ok') + '<span><b>Voorkeurslooptijd</b> van investeerders. Geen renteopslag.</span>'; }
+    else { lh.className = 'dc-note'; lh.innerHTML = '<span>Geen renteopslag bij deze looptijd. Investeerders hebben een voorkeur voor 60 maanden.</span>'; }
     $('cVrij').textContent = eur(r.a.vrij);
     $('cAfl').textContent = r.a.perJaar ? eur(r.a.perJaar) + ' per jaar' : 'Geen';
     $('cRule').textContent = r.a.kort ? 'Looptijd tot ' + R.shortTerm + ' maanden: aflossingsvrij tot ' + pctL(R.ltvFreeShort) + ' LTV, het meerdere los je af binnen de looptijd.' : 'Tot ' + pctL(R.ltvFree) + ' LTV aflossingsvrij, het meerdere los je lineair af in ' + R.linearYears + ' jaar.';
@@ -249,9 +252,34 @@
 
   /* ================= navigation ================= */
   var steps = $$('section[data-step]');
+  var STEP_TXT = {
+    1: ['Heeft deze aanvraag kans?', 'Begin met het pand en het gevraagde bedrag.'],
+    2: ['Looptijd, aanvrager en stukken', 'Kies de looptijd en wie er aanvraagt, en tik aan welke stukken je al hebt.'],
+    3: ['Eigendom en bijzonderheden', 'Nog een paar vragen. Daarna zie je de uitkomst.'],
+    4: ['De uitkomst van je check', 'Op basis van wat je hebt ingevuld.']
+  };
+  var stepNow = 1, stepper = $$('[data-dc="stepper"] li');
+  function paintSteps(n) {
+    stepper.forEach(function (li) {
+      var k = +li.getAttribute('data-sn'), b = li.querySelector('button'), num = li.querySelector('.n');
+      li.className = k < n ? 'done' : k === n ? 'on' : '';
+      num.innerHTML = k < n ? '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : String(k);
+      b.tabIndex = k < n && k < 4 ? 0 : -1;
+      if (k === n) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+      b.setAttribute('aria-label', 'Stap ' + k + ': ' + li.querySelector('.t').textContent + (k < n ? ' (afgerond, ga terug)' : ''));
+    });
+  }
+  stepper.forEach(function (li) {
+    li.querySelector('button').addEventListener('click', function () { var k = +li.getAttribute('data-sn'); if (k < stepNow && k < 4) go(k); });
+  });
   function go(n) {
-    steps.forEach(function (s) { s.hidden = s.getAttribute('data-step') !== String(n); });
+    steps.forEach(function (s) {
+      var on = s.getAttribute('data-step') === String(n); s.hidden = !on;
+      s.classList.remove('dc-enter'); if (on && n !== stepNow) { void s.offsetWidth; s.classList.add('dc-enter'); }
+    });
+    stepNow = n; paintSteps(n);
     $('stepLbl').textContent = n < 4 ? 'Stap ' + n + ' van 3' : 'Uitkomst';
+    $('stepTitle').textContent = STEP_TXT[n][0]; $('stepIntro').textContent = STEP_TXT[n][1];
     if (root.getBoundingClientRect().top < 0) root.scrollIntoView({ behavior: 'smooth', block: 'start' });
     track('step', { dc_step: n });
   }
@@ -301,7 +329,7 @@
     $('dFee').textContent = eur(r.fee); $('dBeh').textContent = eur(r.mgmt);
     $('dVerg').textContent = pc(r.v.p) + ' · ' + eur(r.v.eur);
     $('dVergL').innerHTML = r.v.c.map(function (x) { return '<li class="' + (x[1] ? 'y' : '') + '">' + x[0] + ' (0,50%)</li>'; }).join('');
-    $('dMiss').innerHTML = r.miss.length ? r.miss.map(function (m) { return '<li>' + m[1] + '</li>'; }).join('') : '<li class="y" style="color:#067647">Alles compleet</li>';
+    $('dMiss').innerHTML = r.miss.length ? r.miss.map(function (m) { return '<li>' + m[1] + '</li>'; }).join('') : '<li class="y" style="color:#067647">Niets: je hebt alle stukken al. Je levert ze aan na het indienen.</li>';
     $('dNote').textContent = S.eig === 'erfpacht' ? 'Erfpacht: de einddatum moet minimaal 10 jaar na het einde van de financiering liggen.' : '';
     $('meetLink').href = CONFIG.meetingUrl;
     $('wi').value = 0; wiUpd();
@@ -371,7 +399,7 @@
       F('dc_special_circumstances', BIJZ.filter(function (x) { return bz[x[0]]; }).map(function (x) { return x[0]; }).join(';')),
       F('dc_documents_ready', r.have.map(function (d) { return d[0]; }).join(';')),
       F('dc_documents_missing', r.miss.map(function (d) { return d[0]; }).join(';')),
-      F('dc_documents_missing_text', r.miss.map(function (d) { return d[1]; }).join(', ') || 'Geen'),
+      F('dc_documents_missing_text', r.miss.map(function (d) { return d[1]; }).join(', ') || 'niets, je hebt alle stukken al klaarliggen'),
       F('dc_dossier_completeness', r.pct),
       F('dc_outcome', r.o),
       F('dc_max_financing', Math.round(r.maxF)), F('dc_annual_repayment', Math.round(r.a.perJaar)),

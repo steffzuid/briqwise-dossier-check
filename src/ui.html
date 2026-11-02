@@ -9,6 +9,32 @@
 #bw-dc .dc-lbl{font-size:14px;font-weight:600;color:var(--v);margin:0 0 8px;display:block}
 #bw-dc .dc-req{color:var(--or);margin-left:2px;font-weight:700}
 #bw-dc .dc-hint{font-size:13px;color:var(--mu);margin:4px 0 0}
+#bw-dc .dc-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;list-style:none;margin:10px 0 22px;padding:0}
+#bw-dc .dc-steps li{margin:0;padding:0;min-width:0}
+#bw-dc .dc-steps button{all:unset;box-sizing:border-box;display:grid;gap:8px;width:100%;cursor:default;font-family:inherit}
+#bw-dc .dc-steps button::before{content:"";display:block;height:4px;border-radius:4px;background:var(--bd2);transition:background .25s}
+#bw-dc .dc-steps .r{display:flex;align-items:center;gap:8px;font-size:13px;line-height:1.25;color:var(--mu);min-width:0}
+#bw-dc .dc-steps .n{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:#fff;border:1.5px solid var(--bd);color:var(--mu)}
+#bw-dc .dc-steps .n svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+#bw-dc .dc-steps .done button{cursor:pointer}
+#bw-dc .dc-steps .done button::before{background:var(--v)}
+#bw-dc .dc-steps .done .n{background:var(--v);border-color:var(--v);color:#fff}
+#bw-dc .dc-steps .done .r{color:var(--v)}
+#bw-dc .dc-steps .done button:hover .t{text-decoration:underline}
+#bw-dc .dc-steps .done button:focus-visible{outline:2px solid var(--or);outline-offset:4px;border-radius:4px}
+#bw-dc .dc-steps .on button::before{background:var(--gr)}
+#bw-dc .dc-steps .on .n{background:var(--or);border-color:var(--or);color:#fff}
+#bw-dc .dc-steps .on .r{color:var(--v);font-weight:700}
+#bw-dc section[data-step].dc-enter{animation:dcIn .28s cubic-bezier(.2,.7,.2,1)}
+@keyframes dcIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#bw-dc .dc-note{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.45;border-radius:10px;padding:10px 12px;margin:10px 0 0;border:1px solid var(--bd2);background:var(--sf);color:var(--tx)}
+#bw-dc .dc-note svg{flex:none;width:16px;height:16px;margin-top:1px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#bw-dc .dc-note.wa{background:var(--wab);border-color:var(--wad);color:var(--wa)}
+#bw-dc .dc-note.ok{background:var(--okb);border-color:var(--okd);color:var(--ok)}
+#bw-dc .dc-note b{font-weight:700}
+@media (max-width:560px){#bw-dc .dc-steps{display:flex}#bw-dc .dc-steps li{flex:0 0 44px}#bw-dc .dc-steps li.on{flex:1 1 auto}#bw-dc .dc-steps li:not(.on) .t{display:none}}
+@media (prefers-reduced-motion:reduce){#bw-dc section[data-step].dc-enter{animation:none}#bw-dc .dc-steps button::before{transition:none}}
+
 #bw-dc .dc-meter{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:center;background:var(--pe2);border-radius:12px;padding:14px 16px;margin-bottom:24px}
 #bw-dc .dc-bar{position:relative;height:10px;border-radius:5px;background:#fff}
 #bw-dc .dc-bar i{position:absolute;top:-4px;width:2px;height:18px;background:var(--v)}
@@ -117,8 +143,14 @@
 <div id="bw-dc" data-dc-root>
 <div class="dc-card">
 <div class="dc-top"><span class="dc-eyebrow">Dossier-check voor intermediairs</span><span data-dc="stepLbl">Stap 1 van 3</span></div>
-<h2 class="dc-h">Heeft deze aanvraag kans?</h2>
-<p class="dc-intro">Schuif, klik en zie direct hoe je case ervoor staat.</p>
+<ol class="dc-steps" data-dc="stepper" aria-label="Voortgang">
+<li data-sn="1"><button type="button" tabindex="-1"><span class="r"><span class="n">1</span><span class="t">Pand en bedrag</span></span></button></li>
+<li data-sn="2"><button type="button" tabindex="-1"><span class="r"><span class="n">2</span><span class="t">Aanvrager en stukken</span></span></button></li>
+<li data-sn="3"><button type="button" tabindex="-1"><span class="r"><span class="n">3</span><span class="t">Bijzonderheden</span></span></button></li>
+<li data-sn="4"><button type="button" tabindex="-1"><span class="r"><span class="n">4</span><span class="t">Uitkomst</span></span></button></li>
+</ol>
+<h2 class="dc-h" data-dc="stepTitle">Heeft deze aanvraag kans?</h2>
+<p class="dc-intro" data-dc="stepIntro">Begin met het pand en het gevraagde bedrag.</p>
 
 <div class="dc-meter" data-dc="meter">
 <div class="dc-ltv">
@@ -166,7 +198,7 @@
 <section data-step="2" hidden>
 <div class="dc-sl"><div class="dc-slh"><span class="dc-lbl">Gewenste looptijd</span><span class="dc-val" data-dc="lOut"></span></div>
 <input type="range" data-dc="looptijd" min="0" max="8" step="1" value="6" aria-label="Gewenste looptijd">
-<p class="dc-hint" data-dc="lHint"></p></div>
+<p class="dc-note" data-dc="lHint" aria-live="polite"></p></div>
 <div class="dc-calc">
 <div class="r"><span>Aflossingsvrij</span><b data-dc="cVrij"></b></div>
 <div class="r"><span>Verplichte aflossing</span><b data-dc="cAfl"></b></div>
@@ -189,7 +221,8 @@
 <span class="dc-lbl">Minimaal drie verhuurde panden en drie huurcontracten, en huur minimaal 25% van het totale inkomen?</span>
 <div class="dc-grid sm" data-g="box3"><button type="button" class="dc-opt" data-v="ja" style="justify-content:center">Ja</button><button type="button" class="dc-opt" data-v="nee" style="justify-content:center">Nee</button></div>
 </div>
-<span class="dc-lbl">Wat ligt al klaar? Tik aan.</span>
+<span class="dc-lbl" style="margin-bottom:2px">Welke stukken heb je al? Tik aan.</span>
+<p class="dc-hint" style="margin:0 0 10px">Je uploadt hier niets. Je levert de stukken later aan bij je accountmanager.</p>
 <div class="dc-chips" data-dc="docs"></div>
 <div class="dc-calc" style="margin-top:0" data-dc="vergLive"><div class="r"><span>Jouw vergoeding als intermediair</span><b data-dc="cVerg" style="color:#067647"></b></div><p class="dc-hint" data-dc="cVergH"></p></div>
 <div class="dc-nav"><button type="button" class="dc-btn ghost back" data-go="1" aria-label="Terug">&larr;<span> Terug</span></button><button type="button" class="dc-btn" data-go="3">Volgende &rarr;</button></div>
@@ -303,7 +336,7 @@
 <p style="font-size:14px;margin:4px 0 0" data-dc="wiRes"></p>
 </div>
 <div class="dc-box">
-<h3>Nog aan te leveren</h3>
+<h3>Nog te verzamelen</h3>
 <ul class="dc-list" style="color:#b54708" data-dc="dMiss"></ul>
 <p class="dc-hint" data-dc="dNote"></p>
 </div>

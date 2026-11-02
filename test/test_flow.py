@@ -60,7 +60,15 @@ with sync_playwright() as p:
         check(txt(page, "cAfl") == "Geen", f"{name}: 24 mnd no repayment ({txt(page,'cAfl')})")
         setrange(page, "looptijd", 7)  # 120 mnd
         check("+0,50%" in txt(page, "lHint"), f"{name}: 120 mnd surcharge hint")
+        check("wa" in page.get_attribute('[data-dc="lHint"]', "class"), f"{name}: surcharge hint styled as warning")
         setrange(page, "looptijd", 6)  # 60 mnd
+        check("ok" in page.get_attribute('[data-dc="lHint"]', "class"), f"{name}: 60 mnd hint styled as preferred")
+        check(txt(page, "stepTitle") == "Looptijd, aanvrager en stukken", f"{name}: step 2 title ({txt(page,'stepTitle')})")
+        check(page.get_attribute('[data-dc="stepper"] li[data-sn="1"]', "class") == "done" and page.get_attribute('[data-dc="stepper"] li[data-sn="2"]', "class") == "on", f"{name}: stepper marks step 1 done, step 2 active")
+        check("uploadt hier niets" in page.inner_text('section[data-step="2"]'), f"{name}: no-upload note at documents")
+        page.click('[data-dc="stepper"] li[data-sn="1"] button')
+        check(page.is_visible('section[data-step="1"]') and txt(page, "stepTitle") == "Heeft deze aanvraag kans?", f"{name}: stepper jumps back to step 1")
+        page.click('[data-go="2"]')
         page.screenshot(path=str(shots / f"{name}-2.png"), full_page=True)
         page.click('section[data-step="2"] [data-go="3"]')
         page.click('[data-dc="toResult"]')
